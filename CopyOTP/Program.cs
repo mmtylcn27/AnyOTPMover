@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Management;
-using Microsoft.Win32;
 
 namespace CopyOTP
 {
@@ -24,8 +23,6 @@ namespace CopyOTP
                     proc.StartInfo.CreateNoWindow = true;
                     proc.StartInfo.Arguments = "export \"" + strKey + "\" \"" + filepath + "\" /y";
                     proc.Start();
-                    string stdout = proc.StandardOutput.ReadToEnd();
-                    string stderr = proc.StandardError.ReadToEnd();
                     proc.WaitForExit();
                 }
             }
@@ -40,30 +37,38 @@ namespace CopyOTP
             try
             {
                 var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_DiskDrive");
+                var deviceList = new Dictionary<int, Tuple<string, uint>>();
 
                 foreach (ManagementObject wmi_HD in searcher.Get())
                 {
                     var bIndex = Convert.ToInt32(wmi_HD["Index"]);
+                    var bPNP = wmi_HD["PNPDeviceID"];
+                    var bSIG = wmi_HD["SIgnature"];
+                    var bModel = wmi_HD["Model"];
 
-                    if (bIndex == 0)
-                    {
-                        var bPNP = wmi_HD["PNPDeviceID"].ToString();
-                        var bSIGTemp = wmi_HD["SIgnature"];
-                        var bSIG = bSIGTemp is null ? 0 : Convert.ToUInt32(bSIGTemp);
+                    deviceList.Add(bIndex, Tuple.Create(bPNP.ToString(), bSIG is null ? uint.MinValue : Convert.ToUInt32(bSIG.ToString())));
 
-                        Console.WriteLine(bPNP);
-                        Console.WriteLine(bSIG);
-
-                        File.WriteAllText(filepath, $"{bPNP}{Environment.NewLine}{bSIG}{Environment.NewLine}0");
-                        return;
-                    }
+                    Console.WriteLine($"{bIndex} - {bModel}");
                 }
+
+                Tuple<string, uint> selected;
+
+                if (deviceList.Count > 1)
+                {
+                    Console.Write("Sistemin Kurulu Olduğu Diski seçin: ");
+                    selected = deviceList[Convert.ToInt32(Console.ReadLine())];
+                }
+                else
+                    selected = deviceList.First().Value;
+
+                File.WriteAllText(filepath, $"{selected.Item1}{Environment.NewLine}{selected.Item2}{Environment.NewLine}0");
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
         }
+        
         static void Main(string[] args)
         {
             exportSpoof(bSpoofPath);
