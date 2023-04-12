@@ -15,3 +15,6 @@ AnyOTP programını sms onayı olmadan başka bir bilgisayara taşımak için ge
 * 3.Satır AnyOTP'nin bir süre sonra otomatik kapanmasını önleyen patchi aktif/deaktif etmek için 
 
 3.Satırdaki veriye 0 yazarsanız patch deaktif / 1 yazarsanız patchi aktif etmiş olursunuz.
+
+# OtpInfo.reg Hakkında
+AnyOTP tarafından oluşturulan **HKEY_CURRENT_USER\Software\AnyOTP** anahtarındaki verilerdir. AnyOTP bilgisayar/kullanıcı bilgilerini burada saklamaktadır. 
