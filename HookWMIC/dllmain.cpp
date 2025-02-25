@@ -1,4 +1,4 @@
-﻿// dllmain.cpp : DLL uygulamasının giriş noktasını tanımlar.
+// dllmain.cpp : DLL uygulamasının giriş noktasını tanımlar.
 #include "pch.h"
 
 #include <cstdio>
@@ -9,6 +9,7 @@
 #include <io.h>
 #include <fcntl.h>
 #include <iostream>
+#include <thread>
 
 #include "detours/detours.h"
 
@@ -119,21 +120,22 @@ void Main()
 	
     HMODULE hFastprox = NULL;
 
-    while (!hFastprox)
+    while (true)
     {
         hFastprox = GetModuleHandleA("fastprox.dll");
 
-        if (!hFastprox)
-            Sleep( 100);
+        if (hFastprox)
+            break;
+
+        std::this_thread::yield();
     }
 
-    if (hFastprox)
-        pGetWMI = (tGetWMI)GetProcAddress(
-            hFastprox,
+    pGetWMI = (tGetWMI)GetProcAddress(
+        hFastprox,
 #ifdef _WIN64
-            "?Get@CWbemObject@@UEAAJPEBGJPEAUtagVARIANT@@PEAJ2@Z"
+        "?Get@CWbemObject@@UEAAJPEBGJPEAUtagVARIANT@@PEAJ2@Z"
 #else
-            "?Get@CWbemObject@@UAGJPBGJPAUtagVARIANT@@PAJ2@Z"
+        "?Get@CWbemObject@@UAGJPBGJPAUtagVARIANT@@PAJ2@Z"
 #endif
         );
 
